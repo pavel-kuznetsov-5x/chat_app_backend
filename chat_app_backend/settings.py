@@ -44,8 +44,16 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework.authtoken'
+    'rest_framework.authtoken',
+    'fcm_django'
 ]
+
+FCM_DJANGO_SETTINGS = {
+        "APP_VERBOSE_NAME": "Chat App",
+        "FCM_SERVER_KEY": "AAAACYmkXQs:APA91bH1gri6JKnCGU9OA8ImM_3IfkKNye8XOcnkcJSM-hJQqVg-7_JdboT4hK6cjKdQX-D5J_Tm4VKKlDOL39p8LAw7kuzgWUt5Pf5Q0Y2mQK7FXPdjg1iQK0IeP1OFnz2beDN0z8vj",
+        "ONE_DEVICE_PER_USER": True,
+        "DELETE_INACTIVE_DEVICES": True,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

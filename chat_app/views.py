@@ -3,16 +3,28 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.shortcuts import render
 from django.views.generic import FormView
+from fcm_django.models import FCMDevice
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view, renderer_classes
 from rest_framework.fields import SerializerMethodField, CharField
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
 from chat_app import models
+
+
+@api_view(('GET',))
+@renderer_classes((JSONRenderer,))
+def send_message(request):
+    device = FCMDevice.objects.all().first()
+    device.send_message("Title", "Message")
+    print("lol")
+    return Response("lol", status=status.HTTP_200_OK)
 
 
 # todo optimize requests

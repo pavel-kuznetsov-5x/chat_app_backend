@@ -12,4 +12,4 @@ class Chat(Model):
 class Message(Model):
     text = TextField()
     chat = ForeignKey(Chat, on_delete=CASCADE)
-    from_user = ForeignKey(User, on_delete=CASCADE)
+    author = ForeignKey(User, on_delete=CASCADE)

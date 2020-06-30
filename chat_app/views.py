@@ -44,11 +44,19 @@ class ChatsView(ModelViewSet):
         return self.request.user.chat_set.all()
 
 
+class UserSerializer(ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
+
 class MessageSerializer(ModelSerializer):
+    author = UserSerializer(read_only=True)
 
     class Meta:
         model = Message
-        fields = ['id', 'text', 'from_user']
+        fields = ['id', 'text', 'author', 'chat']
 
 
 class MessagesView(ModelViewSet):
@@ -57,6 +65,13 @@ class MessagesView(ModelViewSet):
 
     def get_queryset(self):
         return Message.objects.filter(chat_id=self.request.GET["chat_id"])
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+        super().perform_create(serializer)
+
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
 
 
 class AuthView(APIView):

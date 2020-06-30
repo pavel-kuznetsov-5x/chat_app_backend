@@ -4,6 +4,7 @@ from django.db.models import Model, TextField, BooleanField, ForeignKey, CASCADE
 
 
 class Chat(Model):
+    name = TextField(default="")
     group = BooleanField(default=False)
     users = ManyToManyField(User)
 

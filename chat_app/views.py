@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.views.generic import FormView
 from rest_framework import status
 from rest_framework.authtoken.models import Token
+from rest_framework.fields import SerializerMethodField, CharField
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.serializers import ModelSerializer
@@ -12,13 +13,27 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
 from chat_app import models
-from chat_app.models import Chat
+
+
+# todo optimize requests
+from chat_app.models import Chat, Message
 
 
 class ChatSerializer(ModelSerializer):
+    display_name = SerializerMethodField()
+    avatar_url = CharField(default="https://miro.medium.com/max/256/1*d69DKqFDwBZn_23mizMWcQ.png")
+
     class Meta:
         model = Chat
-        fields = ['id']
+        fields = ['id', 'display_name', 'avatar_url']
+
+    def get_display_name(self, obj):
+        if obj.group:
+            return obj.name
+        else:
+            current_user = self.context["request"].user
+            other_user = obj.users.exclude(id=current_user.id).first()
+            return other_user.username
 
 
 class ChatsView(ModelViewSet):
@@ -27,6 +42,21 @@ class ChatsView(ModelViewSet):
 
     def get_queryset(self):
         return self.request.user.chat_set.all()
+
+
+class MessageSerializer(ModelSerializer):
+
+    class Meta:
+        model = Message
+        fields = ['id', 'text', 'from_user']
+
+
+class MessagesView(ModelViewSet):
+    serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Message.objects.filter(chat_id=self.request.GET["chat_id"])
 
 
 class AuthView(APIView):

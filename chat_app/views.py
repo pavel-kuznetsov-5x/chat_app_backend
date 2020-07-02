@@ -15,16 +15,19 @@ from rest_framework.serializers import ModelSerializer
 from rest_framework.views import APIView
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
-from chat_app import models
+from chat_app import models, fcm
 
 
-@api_view(('GET',))
-@renderer_classes((JSONRenderer,))
-def send_message(request):
-    device = FCMDevice.objects.all().first()
-    device.send_message("Title", "Message")
-    print("lol")
-    return Response("lol", status=status.HTTP_200_OK)
+@api_view(('POST',))
+def receive_token(request):
+    token = request.data["token"]
+    FCMDevice.objects.update_or_create(registration_id=token, defaults={
+        "user": request.user,
+        "type": "android",
+        "name": request.user.username,
+        "active": True,
+    })
+    return Response(data={}, status=status.HTTP_200_OK)
 
 
 # todo optimize requests
@@ -79,7 +82,9 @@ class MessagesView(ModelViewSet):
         return Message.objects.filter(chat_id=self.request.GET["chat_id"])
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        message = serializer.save(author=self.request.user)
+        for user in message.chat.users.exclude(id=self.request.user.id):
+            fcm.send_message(user, message)
         super().perform_create(serializer)
 
     def create(self, request, *args, **kwargs):
@@ -98,7 +103,7 @@ class AuthView(APIView):
                     token = Token.objects.create(user=user)
                 return Response(data={
                     "token": token.key,
-                    "user_id": user.id
+                    "user": UserSerializer(user).data
                 }, status=status.HTTP_200_OK)
         # else:
         #     if "token" in request.data:
